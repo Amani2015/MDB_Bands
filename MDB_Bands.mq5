@@ -32,7 +32,7 @@
 
 
 //-- Indicator inputs
-input bool StudyMode = false;  //Activate programmer view point
+input bool StudyMode = true;  //Activate study mode
 
 
 //-- Theme Settings
