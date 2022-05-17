@@ -9,6 +9,6 @@ Contacts:
   Cellphone: +255766088200 also on telegram
   email: mnfungo@gmail.com
   
-  we need your support and so help us on patreon to further the move using the following link
+  please support us through the following link
   https://www.patreon.com/TzFxLab
   
