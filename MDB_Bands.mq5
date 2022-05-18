@@ -4,18 +4,6 @@
 //|                                  https://www.patreon.com/TzFxLab |
 //+------------------------------------------------------------------+
 
-#property copyright "Willing to support? Please click HERE!"
-#property link      "https://www.patreon.com/TzFxLab"
-#property version   "22.00" //we use last 2 numbers of Year, and incremented build number of the product after the dot
-#property indicator_chart_window
-#property indicator_buffers 12
-#property indicator_plots 5
-
-#property description "Build date 20220517" //actual date when the improvement have been committed (yyyymmdd)
-#property description "Search search and God will make it found TzFxLab"
-
-
-
 /*
          *Why this indicator?*
          ===================
@@ -31,8 +19,22 @@
 
 
 
+datetime expiryDate =  D'2022.05.30 00:00'; //short period release of the indicator
+
+#property copyright "Willing to support? Please click HERE!"
+#property link      "https://www.patreon.com/TzFxLab"
+#property version   "22.00" //we use last 2 numbers of Year, and incremented build number of the product after the dot
+#property indicator_chart_window
+#property indicator_buffers 12
+#property indicator_plots 5
+
+#property description "Build date 20220517" //actual date when the improvement have been committed (yyyymmdd)
+#property description "Search search and God will make it found TzFxLab"
+
+
+
 //-- Indicator inputs
-input bool StudyMode = true;  //Activate study mode
+input bool StudyMode = false;  //Activate study mode
 
 
 //-- Theme Settings
@@ -48,7 +50,7 @@ input ThemList SelectedTheme = GreenOnBlack;   //Default Theme
 //--List of tested Strategies
 enum StrategyList
   {
-   Entry=1 //Entry
+   ExtremeEntry=1 //ExtremeEntry
   };
 input StrategyList SelectedStrategy = 1;     //Applied Strategy:
 
@@ -123,6 +125,16 @@ bool checked;
 //+------------------------------------------------------------------+
 void OnInit()
   {
+//Check product usage authentication
+datetime currentTime = TimeCurrent();
+if(expiryDate < currentTime)
+  {
+   Alert("The use period for non patreons is up" +
+         "\n Dear Patreons: Please contact me to get your FREE pass to continue the use:" +
+         "\n Through: Whatapp/telegram/call/sms on : +255766988200 ");
+   return;
+  }
+  
 //---- indicator buffer settings
 //BUY  ARROW
    PlotIndexSetInteger(0,PLOT_DRAW_TYPE,DRAW_ARROW);        //Sets indicator draw type
@@ -505,7 +517,7 @@ int OnCalculate(const int rates_total,
 
          // here we can populate all strategies we fill can work with this set of indicators
          //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-         //Entry
+         //ExtremeEntry
          //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
          if(SelectedStrategy==1)
            {
@@ -513,7 +525,13 @@ int OnCalculate(const int rates_total,
             //Buy section
             //+++++++++++++
             if(
-               open[i]
+               low[i-1]<mLowerBB[i-1]
+               && close[i-1]-open[i-1]<0
+               && main[i-1]>oLowerBB[i-1]
+               
+               && main[i-1]<0
+               && oMiddleBB[i-1]>0
+               && Signal[i-1]>0
             )
               {
                ArrowBuy[i-1] = low[i-1];
@@ -525,7 +543,7 @@ int OnCalculate(const int rates_total,
                   )
                     {
                      SendNotification(
-                        "BUY : " + _Symbol + ":Entry" +
+                        "BUY : " + _Symbol + ":ExtremeEntry" +
                         "\nTime Frame :" + StringSubstr(EnumToString((ENUM_TIMEFRAMES)_Period), 7) +
                         "\nEntry Price :" + DoubleToString(Ask, _Digits) +
                         "\nTime :" + TimeToString(SignalTime) +
@@ -536,7 +554,7 @@ int OnCalculate(const int rates_total,
                      WindowsAlert)
                     {
                      Alert(
-                        "BUY : " + _Symbol + ":Entry " +
+                        "BUY : " + _Symbol + ":ExtremeEntry " +
                         "\nTime Frame :" + StringSubstr(EnumToString((ENUM_TIMEFRAMES)_Period), 7) +
                         "\nEntry Price :" + DoubleToString(Ask, _Digits) +
                         "\nTime :" + TimeToString(SignalTime) +
@@ -557,7 +575,13 @@ int OnCalculate(const int rates_total,
             //Sell section
             //+++++++++++++
             if(
-               close[i]
+               high[i-1]>mUpperBB[i-1]
+               && close[i-1]-open[i-1]>0
+               && main[i-1]<oUpperBB[i-1]
+               
+               && main[i-1]>0
+               && oMiddleBB[i-1]<0
+               && Signal[i-1]<0
             )
               {
                ArrowSell[i-1] = high[i-1];
@@ -569,7 +593,7 @@ int OnCalculate(const int rates_total,
                   )
                     {
                      SendNotification(
-                        "SELL : " + _Symbol + ":Entry" +
+                        "SELL : " + _Symbol + ":ExtremeEntry" +
                         "\nTime Frame :" + StringSubstr(EnumToString((ENUM_TIMEFRAMES)_Period), 7) +
                         "\nEntry Price :" + DoubleToString(Bid, _Digits) +
                         "\nTime :" + TimeToString(SignalTime) +
@@ -580,7 +604,7 @@ int OnCalculate(const int rates_total,
                      WindowsAlert)
                     {
                      Alert(
-                        "SELL : " + _Symbol + ":Entry " +
+                        "SELL : " + _Symbol + ":ExtremeEntry " +
                         "\nTime Frame :" + StringSubstr(EnumToString((ENUM_TIMEFRAMES)_Period), 7) +
                         "\nEntry Price :" + DoubleToString(Bid, _Digits) +
                         "\nTime :" + TimeToString(SignalTime) +
@@ -593,7 +617,7 @@ int OnCalculate(const int rates_total,
                     }
                  }
               }
-           } //---- End of Entry strategy
+           } //---- End of ExtremeEntry strategy
 
 
         }//---- End of arrow checking code
