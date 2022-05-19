@@ -34,7 +34,7 @@ datetime expiryDate =  D'2022.05.30 00:00'; //short period release of the indica
 
 
 //-- Indicator inputs
-input bool StudyMode = false;  //Activate study mode
+input bool StudyMode = true;  //Activate study mode
 
 
 //-- Theme Settings
@@ -50,7 +50,10 @@ input ThemList SelectedTheme = GreenOnBlack;   //Default Theme
 //--List of tested Strategies
 enum StrategyList
   {
-   ExtremeEntry=1 //ExtremeEntry
+   M_Entry=1, //M_Entry
+   B_Entry=2, //B_Entry
+   C_Entry=3, //C_Entry
+   Extreme=4  //Extreme
   };
 input StrategyList SelectedStrategy = 1;     //Applied Strategy:
 
@@ -126,15 +129,15 @@ bool checked;
 void OnInit()
   {
 //Check product usage authentication
-datetime currentTime = TimeCurrent();
-if(expiryDate < currentTime)
-  {
-   Alert("The use period for non patreons is up" +
-         "\n Dear Patreons: Please contact me to get your FREE pass to continue the use:" +
-         "\n Through: Whatapp/telegram/call/sms on : +255766988200 ");
-   return;
-  }
-  
+   datetime currentTime = TimeCurrent();
+   if(expiryDate < currentTime)
+     {
+      Alert("The use period for non patreons is up" +
+            "\n Dear Patreons: Please contact me to get your FREE pass to continue the use:" +
+            "\n Through: Whatapp/telegram/call/sms on : +255766988200 ");
+      return;
+     }
+
 //---- indicator buffer settings
 //BUY  ARROW
    PlotIndexSetInteger(0,PLOT_DRAW_TYPE,DRAW_ARROW);        //Sets indicator draw type
@@ -226,7 +229,7 @@ if(expiryDate < currentTime)
       ChartSetInteger(0, CHART_FOREGROUND, false);                //Enabled candles to be under indicactors
 
       //Others
-      ChartSetInteger(0, CHART_SCALE, 3);                         //Candle width
+      ChartSetInteger(0, CHART_SCALE, 2);                         //Candle width
      }
 
 
@@ -266,7 +269,7 @@ if(expiryDate < currentTime)
       ChartSetInteger(0, CHART_FOREGROUND, false);                //Enabled candles to be under indicactors
 
       //Others
-      ChartSetInteger(0, CHART_SCALE, 3);                         //Candle width
+      ChartSetInteger(0, CHART_SCALE, 2);                         //Candle width
      }
 
 
@@ -305,7 +308,7 @@ if(expiryDate < currentTime)
       ChartSetInteger(0, CHART_FOREGROUND, false);                //Enabled candles to be under indicactors
 
       //Others
-      ChartSetInteger(0, CHART_SCALE, 3);                         //Candle width
+      ChartSetInteger(0, CHART_SCALE, 2);                         //Candle width
      }
 
 
@@ -346,7 +349,7 @@ if(expiryDate < currentTime)
       ChartSetInteger(0, CHART_FOREGROUND, false);                //Enabled candles to be under indicactors
 
       //Others
-      ChartSetInteger(0, CHART_SCALE, 3);                         //Candle width
+      ChartSetInteger(0, CHART_SCALE, 2);                         //Candle width
      }
 
   }
@@ -515,11 +518,135 @@ int OnCalculate(const int rates_total,
       if(i > 0)
         {
 
-         // here we can populate all strategies we fill can work with this set of indicators
+
+         //-- now from here we put all testing strategy codes to see how we go through them
+
+
          //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-         //ExtremeEntry
+         //1.M_Entry
          //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
          if(SelectedStrategy==1)
+           {
+            //+++++++++++++
+            //Buy section
+            //+++++++++++++
+            if(
+               close[i-1]-open[i-1]<0
+               && mLowerBB[i-1]<low[i-1]
+               && low[i-1]<low[i-2] && low[i-1]<low[i-3]  && low[i-1]<low[i-4]
+               && high[i-1]<mMiddleBB[i-1]
+               
+               && main[i-1]<0 && Signal[i-1]<main[i-1]
+               && oLowerBB[i-1]<Signal[i-1]
+            )
+              {
+               ArrowBuy[i-1] = low[i-1];
+               if(timeStampCurrentCandle != timeStampLastCheck)
+                 {
+                  timeStampLastCheck = timeStampCurrentCandle;
+                  if(
+                     PushNotification
+                  )
+                    {
+                     SendNotification(
+                        "BUY : " + _Symbol + ":M_Entry" +
+                        "\nTime Frame :" + StringSubstr(EnumToString((ENUM_TIMEFRAMES)_Period), 7) +
+                        "\nEntry Price :" + DoubleToString(Ask, _Digits) +
+                        "\nTime :" + TimeToString(SignalTime) +
+                        "\nJoin our Telegram Channel: " + "https://t.me/Tz_Fx_Lab "
+                     );
+                    }
+                  if(
+                     WindowsAlert)
+                    {
+                     Alert(
+                        "BUY : " + _Symbol + ":M_Entry " +
+                        "\nTime Frame :" + StringSubstr(EnumToString((ENUM_TIMEFRAMES)_Period), 7) +
+                        "\nEntry Price :" + DoubleToString(Ask, _Digits) +
+                        "\nTime :" + TimeToString(SignalTime) +
+                        "\nJoin our Telegram Channel: " + "https://t.me/Tz_Fx_Lab "
+                     );
+                    }
+                  if(SoundNotification)
+                    {
+                     PlaySound("wait.wav");
+                    }
+                 }
+              }
+
+
+
+
+            //+++++++++++++
+            //Sell section
+            //+++++++++++++
+            if(
+               close[i-1]-open[i-1]>0
+               && mUpperBB[i-1]>high[i-1]
+               && high[i-1]>high[i-2] && high[i-1]>high[i-3]  && high[i-1]>high[i-4]
+               && low[i-1]>mMiddleBB[i-1]
+               
+               && main[i-1]>0 && Signal[i-1]>main[i-1]
+               && oUpperBB[i-1]>Signal[i-1]
+            )
+              {
+               ArrowSell[i-1] = high[i-1];
+               if(timeStampCurrentCandle != timeStampLastCheck)
+                 {
+                  timeStampLastCheck = timeStampCurrentCandle;
+                  if(
+                     PushNotification
+                  )
+                    {
+                     SendNotification(
+                        "SELL : " + _Symbol + ":M_Entry" +
+                        "\nTime Frame :" + StringSubstr(EnumToString((ENUM_TIMEFRAMES)_Period), 7) +
+                        "\nEntry Price :" + DoubleToString(Bid, _Digits) +
+                        "\nTime :" + TimeToString(SignalTime) +
+                        "\nPlease support Us: " + "https://www.patreon.com/TzFxLab "
+                     );
+                    }
+                  if(
+                     WindowsAlert)
+                    {
+                     Alert(
+                        "SELL : " + _Symbol + ":M_Entry " +
+                        "\nTime Frame :" + StringSubstr(EnumToString((ENUM_TIMEFRAMES)_Period), 7) +
+                        "\nEntry Price :" + DoubleToString(Bid, _Digits) +
+                        "\nTime :" + TimeToString(SignalTime) +
+                        "\nPlease Support Us: " + "https://www.patreon.com/TzFxLab "
+                     );
+                    }
+                  if(SoundNotification)
+                    {
+                     PlaySound("wait.wav");
+                    }
+                 }
+              }
+           } //---- End of M_Entry strategy
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+         //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+         //2.B_Entry
+         //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+         if(SelectedStrategy==2)
            {
             //+++++++++++++
             //Buy section
@@ -528,7 +655,7 @@ int OnCalculate(const int rates_total,
                low[i-1]<mLowerBB[i-1]
                && close[i-1]-open[i-1]<0
                && main[i-1]>oLowerBB[i-1]
-               
+
                && main[i-1]<0
                && oMiddleBB[i-1]>0
                && Signal[i-1]>0
@@ -543,7 +670,7 @@ int OnCalculate(const int rates_total,
                   )
                     {
                      SendNotification(
-                        "BUY : " + _Symbol + ":ExtremeEntry" +
+                        "BUY : " + _Symbol + ":B_Entry" +
                         "\nTime Frame :" + StringSubstr(EnumToString((ENUM_TIMEFRAMES)_Period), 7) +
                         "\nEntry Price :" + DoubleToString(Ask, _Digits) +
                         "\nTime :" + TimeToString(SignalTime) +
@@ -554,7 +681,7 @@ int OnCalculate(const int rates_total,
                      WindowsAlert)
                     {
                      Alert(
-                        "BUY : " + _Symbol + ":ExtremeEntry " +
+                        "BUY : " + _Symbol + ":B_Entry " +
                         "\nTime Frame :" + StringSubstr(EnumToString((ENUM_TIMEFRAMES)_Period), 7) +
                         "\nEntry Price :" + DoubleToString(Ask, _Digits) +
                         "\nTime :" + TimeToString(SignalTime) +
@@ -578,7 +705,7 @@ int OnCalculate(const int rates_total,
                high[i-1]>mUpperBB[i-1]
                && close[i-1]-open[i-1]>0
                && main[i-1]<oUpperBB[i-1]
-               
+
                && main[i-1]>0
                && oMiddleBB[i-1]<0
                && Signal[i-1]<0
@@ -593,7 +720,7 @@ int OnCalculate(const int rates_total,
                   )
                     {
                      SendNotification(
-                        "SELL : " + _Symbol + ":ExtremeEntry" +
+                        "SELL : " + _Symbol + ":B_Entry" +
                         "\nTime Frame :" + StringSubstr(EnumToString((ENUM_TIMEFRAMES)_Period), 7) +
                         "\nEntry Price :" + DoubleToString(Bid, _Digits) +
                         "\nTime :" + TimeToString(SignalTime) +
@@ -604,7 +731,7 @@ int OnCalculate(const int rates_total,
                      WindowsAlert)
                     {
                      Alert(
-                        "SELL : " + _Symbol + ":ExtremeEntry " +
+                        "SELL : " + _Symbol + ":B_Entry " +
                         "\nTime Frame :" + StringSubstr(EnumToString((ENUM_TIMEFRAMES)_Period), 7) +
                         "\nEntry Price :" + DoubleToString(Bid, _Digits) +
                         "\nTime :" + TimeToString(SignalTime) +
@@ -617,7 +744,246 @@ int OnCalculate(const int rates_total,
                     }
                  }
               }
-           } //---- End of ExtremeEntry strategy
+           } //---- End of B_Entry strategy
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+         //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+         //3.C_Entry
+         //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+         if(SelectedStrategy==3)
+           {
+            //+++++++++++++
+            //Buy section
+            //+++++++++++++
+            if(
+               low[i-1]<mLowerBB[i-1]
+               && close[i-1]-open[i-1]<0
+               && main[i-1]>oLowerBB[i-1]
+
+               && main[i-1]<0
+               && oMiddleBB[i-1]>0
+               && Signal[i-1]>0
+            )
+              {
+               ArrowBuy[i-1] = low[i-1];
+               if(timeStampCurrentCandle != timeStampLastCheck)
+                 {
+                  timeStampLastCheck = timeStampCurrentCandle;
+                  if(
+                     PushNotification
+                  )
+                    {
+                     SendNotification(
+                        "BUY : " + _Symbol + ":C_Entry" +
+                        "\nTime Frame :" + StringSubstr(EnumToString((ENUM_TIMEFRAMES)_Period), 7) +
+                        "\nEntry Price :" + DoubleToString(Ask, _Digits) +
+                        "\nTime :" + TimeToString(SignalTime) +
+                        "\nJoin our Telegram Channel: " + "https://t.me/Tz_Fx_Lab "
+                     );
+                    }
+                  if(
+                     WindowsAlert)
+                    {
+                     Alert(
+                        "BUY : " + _Symbol + ":C_Entry " +
+                        "\nTime Frame :" + StringSubstr(EnumToString((ENUM_TIMEFRAMES)_Period), 7) +
+                        "\nEntry Price :" + DoubleToString(Ask, _Digits) +
+                        "\nTime :" + TimeToString(SignalTime) +
+                        "\nJoin our Telegram Channel: " + "https://t.me/Tz_Fx_Lab "
+                     );
+                    }
+                  if(SoundNotification)
+                    {
+                     PlaySound("wait.wav");
+                    }
+                 }
+              }
+
+
+
+
+            //+++++++++++++
+            //Sell section
+            //+++++++++++++
+            if(
+               close[i-1]>open[i-1]
+            )
+              {
+               ArrowSell[i-1] = high[i-1];
+               if(timeStampCurrentCandle != timeStampLastCheck)
+                 {
+                  timeStampLastCheck = timeStampCurrentCandle;
+                  if(
+                     PushNotification
+                  )
+                    {
+                     SendNotification(
+                        "SELL : " + _Symbol + ":C_Entry" +
+                        "\nTime Frame :" + StringSubstr(EnumToString((ENUM_TIMEFRAMES)_Period), 7) +
+                        "\nEntry Price :" + DoubleToString(Bid, _Digits) +
+                        "\nTime :" + TimeToString(SignalTime) +
+                        "\nPlease support Us: " + "https://www.patreon.com/TzFxLab "
+                     );
+                    }
+                  if(
+                     WindowsAlert)
+                    {
+                     Alert(
+                        "SELL : " + _Symbol + ":C_Entry " +
+                        "\nTime Frame :" + StringSubstr(EnumToString((ENUM_TIMEFRAMES)_Period), 7) +
+                        "\nEntry Price :" + DoubleToString(Bid, _Digits) +
+                        "\nTime :" + TimeToString(SignalTime) +
+                        "\nPlease Support Us: " + "https://www.patreon.com/TzFxLab "
+                     );
+                    }
+                  if(SoundNotification)
+                    {
+                     PlaySound("wait.wav");
+                    }
+                 }
+              }
+           } //---- End of C_Entry strategy
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+         //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+         //4.Extreme
+         //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+         if(SelectedStrategy==4)
+           {
+            //+++++++++++++
+            //Buy section
+            //+++++++++++++
+            if(
+               low[i-1]<mLowerBB[i-1]
+               && close[i-1]>mLowerBB[i-1]
+               && close[i-1]-open[i-1]<0 //start at lower possible position
+               
+               //other checks
+               && main[i-1]<0
+               && oLowerBB[i-1]<main[i-1]
+            )
+              {
+               ArrowBuy[i-1] = low[i-1];
+               if(timeStampCurrentCandle != timeStampLastCheck)
+                 {
+                  timeStampLastCheck = timeStampCurrentCandle;
+                  if(
+                     PushNotification
+                  )
+                    {
+                     SendNotification(
+                        "BUY : " + _Symbol + ":Extreme" +
+                        "\nTime Frame :" + StringSubstr(EnumToString((ENUM_TIMEFRAMES)_Period), 7) +
+                        "\nEntry Price :" + DoubleToString(Ask, _Digits) +
+                        "\nTime :" + TimeToString(SignalTime) +
+                        "\nJoin our Telegram Channel: " + "https://t.me/Tz_Fx_Lab "
+                     );
+                    }
+                  if(
+                     WindowsAlert)
+                    {
+                     Alert(
+                        "BUY : " + _Symbol + ":Extreme " +
+                        "\nTime Frame :" + StringSubstr(EnumToString((ENUM_TIMEFRAMES)_Period), 7) +
+                        "\nEntry Price :" + DoubleToString(Ask, _Digits) +
+                        "\nTime :" + TimeToString(SignalTime) +
+                        "\nJoin our Telegram Channel: " + "https://t.me/Tz_Fx_Lab "
+                     );
+                    }
+                  if(SoundNotification)
+                    {
+                     PlaySound("wait.wav");
+                    }
+                 }
+              }
+
+
+
+
+            //+++++++++++++
+            //Sell section
+            //+++++++++++++
+            if(
+               high[i-1]>mUpperBB[i-1]
+               && close[i-1]<mUpperBB[i-1]
+               && close[i-1]-open[i-1]>0 //start at higher possible position
+               
+               //other checks
+               && main[i-1]>0
+               && oUpperBB[i-1]>main[i-1]
+            )
+              {
+               ArrowSell[i-1] = high[i-1];
+               if(timeStampCurrentCandle != timeStampLastCheck)
+                 {
+                  timeStampLastCheck = timeStampCurrentCandle;
+                  if(
+                     PushNotification
+                  )
+                    {
+                     SendNotification(
+                        "SELL : " + _Symbol + ":Extreme" +
+                        "\nTime Frame :" + StringSubstr(EnumToString((ENUM_TIMEFRAMES)_Period), 7) +
+                        "\nEntry Price :" + DoubleToString(Bid, _Digits) +
+                        "\nTime :" + TimeToString(SignalTime) +
+                        "\nPlease support Us: " + "https://www.patreon.com/TzFxLab "
+                     );
+                    }
+                  if(
+                     WindowsAlert)
+                    {
+                     Alert(
+                        "SELL : " + _Symbol + ":Extreme " +
+                        "\nTime Frame :" + StringSubstr(EnumToString((ENUM_TIMEFRAMES)_Period), 7) +
+                        "\nEntry Price :" + DoubleToString(Bid, _Digits) +
+                        "\nTime :" + TimeToString(SignalTime) +
+                        "\nPlease Support Us: " + "https://www.patreon.com/TzFxLab "
+                     );
+                    }
+                  if(SoundNotification)
+                    {
+                     PlaySound("wait.wav");
+                    }
+                 }
+              }
+           } //---- End of Extreme strategy
+
+
+
+
 
 
         }//---- End of arrow checking code
